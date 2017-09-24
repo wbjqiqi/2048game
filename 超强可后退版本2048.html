@@ -1,0 +1,618 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="author" author="我不叫奇奇">
+	<meta charset="UTF-8">
+	<title>2048</title>
+	<style type="text/css">
+		*{
+			margin:0;
+			padding:0;
+		}
+		table{
+			position:absolute;
+			top:20px;
+			right:20px;
+		}
+		table td{
+			width:120px;
+			height:70px;
+		}
+		.button{
+			font:bold 18px arial;
+			width:100px;
+			height:50px;
+			background: #fafafa;
+			border-radius:8px;
+		}
+		h1,h2{
+			text-align: center;
+			margin:20px;
+		}
+		#rule{
+			float:left;
+			margin:50px;
+			width:300px;
+			height:300px;
+			background: #446;
+			border:5px solid #020;
+			border-radius: 8px
+		}
+		#rule h3{
+			text-align: center;
+			margin:30px;
+		}
+		#rule p{
+			font-weight: bold;
+		}
+		#gamePanel{
+			position:relative;
+			margin:10px auto;
+			width: 480px;
+			height:480px;
+			background: #119;
+			border-radius:8px;
+		}
+		.cell{
+			width:110px;
+			height:110px;
+			position:absolute;
+			font:bold 30px arial;
+			text-align: center;
+			line-height: 110px;
+			border-radius:8px;
+			background:  #999;
+		}
+		#cell00,#cell01,#cell02,#cell03{
+			top:5px;
+		}
+		#cell10,#cell11,#cell12,#cell13{
+			top:125px;
+		}
+		#cell20,#cell21,#cell22,#cell23{
+			top:245px;
+		}
+		#cell30,#cell31,#cell32,#cell33{
+			top:365px;
+		}
+		#cell00,#cell10,#cell20,#cell30{
+			left:5px;
+		}
+		#cell01,#cell11,#cell21,#cell31{
+			left:125px;
+		}
+		#cell02,#cell12,#cell22,#cell32{
+			left:245px;
+		}
+		#cell03,#cell13,#cell23,#cell33{
+			left:365px;
+		}
+		.num8, .num16, .num32, .num64, .num128, .num256, .num512, .num1024, .num2048, .num4096, .num8192
+		{
+		    color: #fff;
+		}
+		.num1024, .num2048, .num4096, .num8192
+		{
+		    font-size: 40px;
+		}
+		.num2
+		{
+		    background: #eee4da;
+		}
+		.num4
+		{
+		    background: #ede0c8;
+		}
+		.num8
+		{
+		    background: #f2b179;
+		}
+		.num16
+		{
+		    background: #f59563;
+		}
+		.num32
+		{
+		    background: #f67c5f;
+		}
+		.num64
+		{
+		    background: #f65e3b;
+		}
+		.num128
+		{
+		    background: #edcf72;
+		}
+		.num256
+		{
+		    background: #edcc61;
+		}
+		.num512
+		{
+		    background: #9c0;
+		}
+		.num1024
+		{
+		    background: #33b5e5;
+		}
+		.num2048
+		{
+		    background: #09c;
+		}
+		.num4096
+		{
+		    background: #a6c;
+		}
+		.num8192
+		{
+		    background: #93c;
+		}
+		#GameOver{
+			position:relative;
+		}
+		#GameOver div{
+			width:480px;
+			height:480px;
+			background: #555;
+			opacity:0.5;
+		}
+		#GameOver p{
+			width:250px;
+			height:150px;
+			background: #fff;
+			border-radius:8px;
+			position: absolute;
+			top:100px;
+			left:120px;
+		}
+		#GameOver p span{
+			display: block;
+			text-align: center;
+		}
+	</style>
+	<script type="text/javascript">
+		var cell = [
+						[0,0,0,0],
+						[0,0,0,0],
+						[0,0,0,0],
+						[0,0,0,0]
+					]
+		var score = 0;
+		var finalscore = 0;
+		var last = [];
+		var scores = 0;
+		var scoreHistory = [];
+		var max = 0;
+		var ctn = 0;
+		window.onload = function (){
+			StartAction();
+		}
+		function $(id){
+			return document.getElementById(id);
+		}
+		function StartAction(){
+			$("GameOver").style.display = "none";
+			score = 0;
+			finalscore = 0;
+			last = [];
+			scores = 0;
+			scoreHistory = [];
+			max = 0;
+			ctn = 0;
+			for(row=0;row<4;row++){
+				for(col=0;col<4;col++){
+					cell[row][col] = 0;
+				}
+			}
+			RandomNum();
+			RandomNum();
+
+			var cellss = [
+							[0,0,0,0],
+							[0,0,0,0],
+							[0,0,0,0],
+							[0,0,0,0]
+						]
+			for(var i=0;i<4;i++){
+				for(var j=0;j<4;j++){
+					cellss[i][j] = cell[i][j];
+				}
+			}
+
+			last.push(cellss);
+
+			UpdateView();
+		}
+		function RandomNum(){
+			if(Full()){return};
+			while(1){
+				var row = parseInt(Math.random()*4);
+				var col = parseInt(Math.random()*4);
+
+				if(cell[row][col] == 0){
+					cell[row][col] = Math.random() < 0.8 ? 2 : 4;
+					break;
+				}
+			}
+		}
+		function Full(){
+			for(row=0;row<4;row++){
+				for(col=0;col<4;col++){
+					if(cell[row][col] == 0){
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		function UpdateView(){
+			for(row=0;row<4;row++){
+				for(col=0;col<4;col++){
+					var n = $("cell" + row + col);
+					n.className = "cell";
+					n.innerHTML = "";
+					var a = cell[row][col];
+					if(a>0){
+						n.innerHTML = a;
+						n.className = "cell " + "num" + a;
+					}
+				}
+			}
+			$("score").innerHTML = score;
+		}
+		function afterMove(){
+			RandomNum();
+
+			var cellss = [
+							[0,0,0,0],
+							[0,0,0,0],
+							[0,0,0,0],
+							[0,0,0,0]
+						]
+			for(var i=0;i<4;i++){
+				for(var j=0;j<4;j++){
+					cellss[i][j] = cell[i][j];
+				}
+			}
+
+			scoreHistory.push(scores);
+			scores = 0;
+
+			win();
+
+			last.push(cellss);
+
+			UpdateView();
+
+			GameOver();
+		}
+		function upAction(){
+			if(!canMoveUp()){return}
+
+			for(col=0;col<4;col++){
+				MoveUp(col);
+			}
+
+			afterMove();
+		}
+		function MoveUp(){
+			for(row=0;row<3;){
+				var current = cell[row][col];
+				var nextRow = cellRowIn(row+1,col,1)
+				if(nextRow == -1){
+					return;
+				}
+				var next = cell[nextRow][col];
+				if(current == 0){
+					cell[row][col] = next;
+					cell[nextRow][col] = 0;
+				}else if(current == next){
+					cell[row][col] = current + current;
+					cell[nextRow][col] = 0;
+					score += current;
+					scores += current;
+					max = cell[row][col] > max ? cell[row][col] : max;
+					row++;
+				}else{
+					row++;
+				}
+			}
+		}
+		function cellRowIn(row,col,step){
+			while(1){
+				if(row<0 || row>=4){
+					return -1;
+				}
+				if(cell[row][col] != 0){
+					return row;
+				}
+				row += step;
+			}
+		}
+		function canMoveUp(){
+			for(row=1;row<4;row++){
+				for(col=0;col<4;col++){
+					if(cell[row][col] != 0 && cell[row-1][col] == 0){
+						return true;
+					}
+					if(cell[row][col] != 0 && cell[row-1][col] == cell[row][col]){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		function downAction(){
+			if(!canMoveDown()){return}
+
+			for(col=0;col<4;col++){
+				MoveDown(col);
+			}
+			afterMove();
+		}
+		function MoveDown(){
+			for(row=3;row>0;){
+				var current = cell[row][col];
+				var nextRow = cellRowIn(row-1,col,-1)
+				if(nextRow == -1){
+					break;
+				}
+				var next = cell[nextRow][col];
+				if(current == 0){
+					cell[row][col] = next;
+					cell[nextRow][col] = 0;
+				}else if(current == next){
+					cell[row][col] = current + current;
+					cell[nextRow][col] = 0;
+					score += current;
+					scores += current;
+					max = cell[row][col] > max ? cell[row][col] : max;
+					row--;
+				}else{
+					row--;
+				}
+			}
+		}
+		function canMoveDown(){
+			for(row=0;row<3;row++){
+				for(col=0;col<4;col++){
+					if(cell[row][col] != 0 && cell[row+1][col] == 0){
+						return true;
+					}
+					if(cell[row][col] != 0 && cell[row+1][col] == cell[row][col]){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		function leftAction(){
+			if(!canMoveLeft()){return}
+
+			for(row=0;row<4;row++){
+				MoveLeft(row);
+			}
+			afterMove();
+		}
+		function MoveLeft(){
+			for(col=0;col<3;){
+				var current = cell[row][col];
+				var nextCol = cellColIn(row,col+1,1)
+				if(nextCol == -1){
+					break;
+				}
+				var next = cell[row][nextCol];
+				if(current == 0){
+					cell[row][col] = next;
+					cell[row][nextCol] = 0;
+				}else if(current == next){
+					cell[row][col] = current + current;
+					cell[row][nextCol] = 0;
+					score += current;
+					scores += current;
+					max = cell[row][col] > max ? cell[row][col] : max;
+					col++;
+				}else{
+					col++;
+				}
+			}
+		}
+		function cellColIn(row,col,step){
+			while(1){
+				if(col<0 || col>=4){
+					return -1;
+				}
+				if(cell[row][col] != 0){
+					return col;
+				}
+				col += step;
+			}
+		}
+		function canMoveLeft(){
+			for(row=0;row<4;row++){
+				for(col=1;col<4;col++){
+					if(cell[row][col] != 0 && cell[row][col-1] == 0){
+						return true;
+					}
+					if(cell[row][col] != 0 && cell[row][col-1] == cell[row][col]){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		function rightAction(){
+			if(!canMoveRight()){return}
+
+			for(row=0;row<4;row++){
+				MoveRight(row);
+			}
+			afterMove();
+		}
+		function MoveRight(){
+			for(col=3;col>0;){
+				var current = cell[row][col];
+				var nextCol = cellColIn(row,col-1,-1)
+				if(nextCol == -1){
+					break;
+				}
+				var next = cell[row][nextCol];
+				if(current == 0){
+					cell[row][col] = next;
+					cell[row][nextCol] = 0;
+				}else if(current == next){
+					cell[row][col] = current + current;
+					cell[row][nextCol] = 0;
+					score += current;
+					scores += current;
+					max = cell[row][col] > max ? cell[row][col] : max;
+					col--;
+				}else{
+					col--;
+				}
+			}
+		}
+		function canMoveRight(){
+			for(row=0;row<4;row++){
+				for(col=0;col<3;col++){
+					if(cell[row][col] != 0 && cell[row][col+1] == 0){
+						return true;
+					}
+					if(cell[row][col] != 0 && cell[row][col+1] == cell[row][col]){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		function lastAction(){
+			if(last.length<=1 || scoreHistory.length<=0){return};
+			for(row=0;row<4;row++){
+				for(col=0;col<4;col++){
+					cell[row][col] = last[last.length-2][row][col];
+				}
+			}
+			score -= scoreHistory[scoreHistory.length-1]
+			scoreHistory.pop();
+			last.pop();
+			UpdateView();
+		}
+		document.onkeydown=function(event){
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if(e && e.keyCode==37){ 
+                leftAction();
+              }
+            if(e && e.keyCode==38){ 
+                 upAction();
+               }            
+             if(e && e.keyCode==39){ 
+                 rightAction();
+            }
+
+            if(e && e.keyCode==40){ 
+                 downAction();
+            }
+            if(e && e.keyCode==96){ 
+                 lastAction();
+            }
+        }
+		function GameOver(){
+			if(canMoveLeft() || canMoveDown() || canMoveRight() || canMoveUp()){return};
+
+			$("GameOver").style.display = "block";
+
+			$("finalscore").innerHTML = score;
+		}
+		function win(){
+			if(ctn == "y"){return}
+			if(max >= 2048){
+				alert("厉害了，我的哥！");
+				while(1){
+					ctn = prompt("接着玩请输入y，重新开始请输入n");
+					if(ctn == "y"){
+						break;
+					}else if(ctn == "n"){
+						StartAction();
+						break;
+					}else{
+						alert("你输入的不正确哦，接着玩请输入y，重新开始请输入n");
+					}
+				}
+			}
+		}
+	</script>
+</head>
+<body>
+	<table>
+		<tr>
+			<td><input type="button"  class="button" value="New Game" onclick="StartAction()"></td>
+			<td><input type="button" class="button" value="up" onclick="upAction()"></td>
+			<td><input type="button" class="button" value="后悔" onclick="lastAction()"></td>
+		</tr>
+
+		<tr>
+			<td><input type="button"  class="button" value="left" onclick="leftAction()"></td>
+			<td></td>
+			<td><input type="button"  class="button" value="right" onclick="rightAction()"></td>
+		</tr>
+
+		<tr>
+			<td></td>
+			<td><input type="button" class="button" value="down" onclick="downAction()"></td>
+			<td></td>
+		</tr>
+	</table>
+
+	<h1>2048</h1>
+
+	<h2>Score:<span id="score">0</span></h2>
+
+	<div id="rule">
+
+		<h3>2048游戏规则</h3>
+
+		<p>1.键盘↑、↓、←、→、控制上下左右</p>
+
+		<p>2.键盘0控制后退一步</p>
+
+		<p>祝您玩的开心</p>
+
+	</div>
+
+	<div id="gamePanel">
+		
+
+		<div class="cell num2" id="cell00">2</div>
+		<div class="cell num4" id="cell01">4</div>
+		<div class="cell num8" id="cell02">8</div>
+		<div class="cell num16" id="cell03">16</div>
+
+		<div class="cell num32" id="cell10">32</div>
+		<div class="cell num64" id="cell11">64</div>
+		<div class="cell num128" id="cell12">128</div>
+		<div class="cell num256" id="cell13">256</div>
+
+		<div class="cell num512" id="cell20">512</div>
+		<div class="cell num1024" id="cell21">1024</div>
+		<div class="cell num2048" id="cell22">2048</div>
+		<div class="cell num4096" id="cell23">4096</div>
+
+		<div class="cell num8192" id="cell30">8192</div>
+		<div class="cell num16384" id="cell31">16384</div>
+		<div class="cell" id="cell32"></div>
+		<div class="cell" id="cell33"></div>
+
+		<div id="GameOver">
+
+			<div></div>
+
+			<p>
+				<span>GameOver<span><br>
+				<span>Score:</span><span id="finalscore">0</span><br>
+				<input type="button" class="button" value="Try Again" onclick="StartAction()">
+			</p>
+
+		</div>
+	</div>
+</body>
+</html>
